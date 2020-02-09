@@ -1,6 +1,7 @@
 package com.example.myapplication;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
@@ -9,6 +10,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -20,15 +22,14 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainLogin extends AppCompatActivity {
 
     private static String IP_ADDRESS = "192.168.46.204";
     private static String TAG = "phptest";
 
-    private EditText mEditTextName;
+
     private EditText mEditTextID;
     private EditText mEditTextPassword;
-    private EditText mEditTextAge;
     private TextView mTextViewResult;
 
 
@@ -36,12 +37,10 @@ public class MainActivity extends AppCompatActivity {
     @SuppressWarnings("unused")
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_login);
 
-        mEditTextName = (EditText)findViewById(R.id.editText_main_name);
         mEditTextID = (EditText)findViewById(R.id.editText_main_id);
         mEditTextPassword = (EditText)findViewById(R.id.editText_main_password);
-        mEditTextAge = (EditText)findViewById(R.id.editText_main_age);
         mTextViewResult = (TextView)findViewById(R.id.textView_main_result);
 
         mTextViewResult.setMovementMethod(new ScrollingMovementMethod());
@@ -53,19 +52,16 @@ public class MainActivity extends AppCompatActivity {
             @SuppressWarnings("unused")
             public void onClick(View v) {
 
-                String name = mEditTextName.getText().toString();
                 String id = mEditTextID.getText().toString();
                 String password = mEditTextPassword.getText().toString();
-                String age = mEditTextAge.getText().toString();
 
                 InsertData task = new InsertData();
-                task.execute("http://" + IP_ADDRESS + "/insert.php", name,id, password, age);
+                task.execute("http://" + IP_ADDRESS + "/new.php", id, password);
 
 
-                mEditTextName.setText("");
                 mEditTextID.setText("");
                 mEditTextPassword.setText("");
-                mEditTextAge.setText("");
+
 
             }
         });
@@ -82,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
         protected void onPreExecute() {
             super.onPreExecute();
 
-            progressDialog = ProgressDialog.show(MainActivity.this,
+            progressDialog = ProgressDialog.show(MainLogin.this,
                     "Please Wait", null, true, true);
         }
 
@@ -93,8 +89,18 @@ public class MainActivity extends AppCompatActivity {
             super.onPostExecute(result);
 
             progressDialog.dismiss();
-            mTextViewResult.setText(result);
+            //mTextViewResult.setText(result);
             Log.d(TAG, "POST response  - " + result);
+            if(result.equals("로그인 실패")){
+                Toast.makeText(getApplicationContext(), result, Toast.LENGTH_SHORT).show();
+                mEditTextID.setText("");
+                mEditTextPassword.setText("");
+            }
+            else{
+                Toast.makeText(getApplicationContext(), result, Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                startActivity(intent);
+            }
         }
 
 
@@ -102,13 +108,11 @@ public class MainActivity extends AppCompatActivity {
         @SuppressWarnings("unused")
         protected String doInBackground(String... params) {
 
-            String name = (String)params[1];
-            String id = (String)params[2];
-            String password = (String)params[3];
-            String age = (String)params[4];
+            String id = (String)params[1];
+            String password = (String)params[2];
 
             String serverURL = (String)params[0];
-            String postParameters = "name=" + name + "&id=" + id + "&password=" + password + "&age=" + age;
+            String postParameters = "&id=" + id + "&password=" + password;
 
 
             try {
